@@ -352,6 +352,10 @@ def FeatureFastLZCNT
     : SubtargetFeature<
           "fast-lzcnt", "HasFastLZCNT", "true",
           "LZCNT instructions are as fast as most simple integer ops">;
+def FeatureSeparateStackSeg
+    : SubtargetFeature<"separate-stack-seg", "UseSeparateStackSeg", "true",
+                       "Help to support using different stack and data segments"
+                       " by adding segment override prefixes (X86-32 only).">;
 // If the target can efficiently decode NOPs upto 7-bytes in length.
 def FeatureFast7ByteNOP
     : SubtargetFeature<

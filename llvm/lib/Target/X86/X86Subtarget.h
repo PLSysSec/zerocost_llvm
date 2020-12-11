@@ -465,6 +465,9 @@ class X86Subtarget final : public X86GenSubtargetInfo {
   /// Use software floating point for code generation.
   bool UseSoftFloat = false;
 
+  /// Use a separate stack segment
+  bool UseSeparateStackSeg = false;
+
   /// Use alias analysis during code generation.
   bool UseAA = false;
 
@@ -812,6 +815,7 @@ public:
   bool isAtom() const { return X86ProcFamily == IntelAtom; }
   bool isSLM() const { return X86ProcFamily == IntelSLM; }
   bool useSoftFloat() const { return UseSoftFloat; }
+  bool useSeparateStackSeg() const { return UseSeparateStackSeg; }
   bool useAA() const override { return UseAA; }
 
   /// Use mfence if we have SSE2 or we're on x86-64 (even if we asked for

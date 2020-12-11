@@ -110,6 +110,10 @@ FunctionPass *createX86CmovConverterPass();
 /// the upper portions of registers, and to save code size.
 FunctionPass *createX86FixupBWInsts();
 
+/// Return a pass that helps to support separate stack and data segments by
+/// emitting segment override prefixes where necessary.
+FunctionPass *createX86FixupSeparateStack();
+
 /// Return a Machine IR pass that reassigns instruction chains from one domain
 /// to another, when profitable.
 FunctionPass *createX86DomainReassignmentPass();
@@ -148,6 +152,7 @@ FunctionPass *createX86SpeculativeExecutionSideEffectSuppression();
 
 void initializeEvexToVexInstPassPass(PassRegistry &);
 void initializeFixupBWInstPassPass(PassRegistry &);
+void initializeX86FixupSeparateStackPass(PassRegistry &);
 void initializeFixupLEAPassPass(PassRegistry &);
 void initializeFPSPass(PassRegistry &);
 void initializeWinEHStatePassPass(PassRegistry &);
