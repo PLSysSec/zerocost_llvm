@@ -2065,9 +2065,25 @@ Address X86_32ABIInfo::EmitVAArg(CodeGenFunction &CGF,
   TypeInfo.Align = CharUnits::fromQuantity(
                 getTypeStackAlignInBytes(Ty, TypeInfo.Align.getQuantity()));
 
-  return emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false,
+  const Address Addr = emitVoidPtrVAArg(CGF, VAListAddr, Ty, /*Indirect*/ false,
                           TypeInfo, CharUnits::fromQuantity(4),
                           /*AllowHigherAlign*/ true);
+  const std::vector<std::string> &TargetFeatures =
+    CGF.getTarget().getTargetOpts().Features;
+  if (std::find(TargetFeatures.begin(), TargetFeatures.end(),
+                "+separate-stack-seg") != TargetFeatures.end()) {
+    // Cast the pointer into the address space for the stack segment.
+    // This is to help support multi-segment memory models in which DS and SS
+    // may differ from each other.
+    llvm::Type *DirectTy = CGF.ConvertTypeForMem(Ty);
+    llvm::Value *PtrAsInt =
+      CGF.Builder.CreatePtrToInt(Addr.getPointer(), CGF.IntPtrTy);
+    llvm::Value *PtrInStackSeg =
+      CGF.Builder.CreateIntToPtr(PtrAsInt, DirectTy->getPointerTo(258));
+    return Address(PtrInStackSeg, Addr.getAlignment());
+  }
+
+  return Addr;
 }
 
 bool X86_32TargetCodeGenInfo::isStructReturnInRegABI(
