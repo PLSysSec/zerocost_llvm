@@ -13,14 +13,14 @@
   entry:
     %s_ = alloca %struct.s, align 4
     %t_ = alloca %struct.s, align 4
-    call void @g(%struct.s* byval align 4 %s_, %struct.s* byval align 4 %t_)
+    call void @g(%struct.s* byval(%struct.s) align 4 %s_, %struct.s* byval(%struct.s) align 4 %t_)
     ret void
   }
   
   ; Function Attrs: nounwind
   declare void @llvm.va_start(i8*) #1
   
-  declare void @g(%struct.s* byval align 4, %struct.s* byval align 4)
+  declare void @g(%struct.s* byval(%struct.s) align 4, %struct.s* byval(%struct.s) align 4)
   
   ; Function Attrs: nounwind
   define void @vla(i32 %n, ...) #0 {
@@ -79,7 +79,7 @@
     store i32 0, i32* %i, align 4
     br label %for.cond
   
-  for.cond:                                         ; preds = %for.inc, %entry
+  for.cond:                                         ; preds = %for.inc, $entry
     %0 = load i32, i32* %i, align 4
     %cmp = icmp slt i32 %0, 16
     br i1 %cmp, label %for.inc, label %for.end
@@ -123,7 +123,7 @@
     store i32 0, i32* %i, align 4
     br label %for.cond
   
-  for.cond:                                         ; preds = %for.inc, %entry
+  for.cond:                                         ; preds = %for.inc, $entry
     %0 = load i32, i32* %i, align 4
     %cmp = icmp slt i32 %0, 16
     br i1 %cmp, label %for.inc, label %for.end
@@ -182,8 +182,8 @@ legalized:       false
 regBankSelected: false
 selected:        false
 tracksRegLiveness: true
-calleeSavedRegisters: [ '%bh', '%bl', '%bp', '%bpl', '%bx', '%di', '%dil', 
-                        '%ebp', '%ebx', '%edi', '%esi', '%si', '%sil' ]
+calleeSavedRegisters: [ '$bh', '$bl', '$bp', '$bpl', '$bx', '$di', '$dil', 
+                        '$ebp', '$ebx', '$edi', '$esi', '$si', '$sil' ]
 frameInfo:       
   isFrameAddressTaken: false
   isReturnAddressTaken: false
@@ -199,30 +199,30 @@ frameInfo:
   hasVAStart:      false
   hasMustTailInVarArgFunc: false
 fixedStack:      
-  - { id: 0, type: spill-slot, offset: -12, size: 4, alignment: 4, callee-saved-register: '%esi' }
-  - { id: 1, type: spill-slot, offset: -8, size: 4, alignment: 8, callee-saved-register: '%edi' }
+  - { id: 0, type: spill-slot, offset: -12, size: 4, alignment: 4, callee-saved-register: '$esi' }
+  - { id: 1, type: spill-slot, offset: -8, size: 4, alignment: 8, callee-saved-register: '$edi' }
 stack:           
   - { id: 0, name: s_, offset: -80, size: 64, alignment: 8 }
   - { id: 1, name: t_, offset: -144, size: 64, alignment: 8 }
 body:             |
   bb.0.entry:
-    liveins: %edi, %esi
+    liveins: $edi, $esi
   
-    frame-setup PUSH32r killed %edi, implicit-def %esp, implicit %esp
-    frame-setup PUSH32r killed %esi, implicit-def %esp, implicit %esp
-    %esp = frame-setup SUB32ri %esp, 260, implicit-def dead %eflags
-    %esi = LEA32r %esp, 1, _, 192, _
-    %ecx = MOV32ri 16
-    %edi = MOV32rr %esp
-    REP_MOVSD_32 implicit-def dead %ecx, implicit-def dead %edi, implicit-def dead %esi, implicit killed %ecx, implicit %edi, implicit %esi
-    %edi = LEA32r %esp, 1, _, 64, _
-    %esi = LEA32r %esp, 1, _, 128, _
-    %ecx = MOV32ri 16
-    REP_MOVSD_32 implicit-def dead %ecx, implicit-def dead %edi, implicit-def dead %esi, implicit killed %ecx, implicit %edi, implicit %esi
-    CALLpcrel32 @g, csr_32, implicit %esp, implicit-def %esp
-    %esp = ADD32ri %esp, 260, implicit-def dead %eflags
-    %esi = POP32r implicit-def %esp, implicit %esp
-    %edi = POP32r implicit-def %esp, implicit %esp
+    frame-setup PUSH32r killed $edi, implicit-def $esp, implicit $esp
+    frame-setup PUSH32r killed $esi, implicit-def $esp, implicit $esp
+    $esp = frame-setup SUB32ri $esp, 260, implicit-def dead $eflags
+    $esi = LEA32r $esp, 1, _, 192, _
+    $ecx = MOV32ri 16
+    $edi = MOV32rr $esp
+    REP_MOVSD_32 implicit-def dead $ecx, implicit-def dead $edi, implicit-def dead $esi, implicit killed $ecx, implicit $edi, implicit $esi
+    $edi = LEA32r $esp, 1, _, 64, _
+    $esi = LEA32r $esp, 1, _, 128, _
+    $ecx = MOV32ri 16
+    REP_MOVSD_32 implicit-def dead $ecx, implicit-def dead $edi, implicit-def dead $esi, implicit killed $ecx, implicit $edi, implicit $esi
+    CALLpcrel32 @g, csr_32, implicit $esp, implicit-def $esp
+    $esp = ADD32ri $esp, 260, implicit-def dead $eflags
+    $esi = POP32r implicit-def $esp, implicit $esp
+    $edi = POP32r implicit-def $esp, implicit $esp
     RETL
 
 ...
@@ -230,7 +230,7 @@ body:             |
 # CHECK-LABEL: name: vla
 # Check that this pass preserves the SS prefix added by the frontend (using the
 # address space #258) for variadic argument access.
-# CHECK: %eax = MOV32rm %esp, 1, _, 20, %ss
+# CHECK: $eax = MOV32rm $esp, 1, $noreg, 20, $ss :: (load 4 from %ir.2, addrspace 258)
 name:            vla
 alignment:       4
 exposesReturnsTwice: false
@@ -261,16 +261,16 @@ stack:
   - { id: 2, name: x, offset: -12, size: 4, alignment: 4 }
 body:             |
   bb.0.entry:
-    %esp = frame-setup SUB32ri8 %esp, 12, implicit-def dead %eflags
-    %eax = MOV32rm %esp, 1, _, 16, _ :: (load 4 from %fixed-stack.1, align 16)
-    MOV32mr %esp, 1, _, 8, _, killed %eax :: (store 4 into %ir.n.addr)
-    %eax = LEA32r %esp, 1, _, 20, _
-    MOV32mr %esp, 1, _, 0, _, killed %eax :: (store 4 into %ir.ap1)
-    %eax = LEA32r %esp, 1, _, 24, _
-    MOV32mr %esp, 1, _, 0, _, killed %eax :: (store 4 into %ir.ap)
-    %eax = MOV32rm %esp, 1, _, 20, %ss :: (load 4 from %ir.2)
-    MOV32mr %esp, 1, _, 4, _, killed %eax :: (store 4 into %ir.x)
-    %esp = ADD32ri8 %esp, 12, implicit-def dead %eflags
+    $esp = frame-setup SUB32ri8 $esp, 12, implicit-def dead $eflags
+    $eax = MOV32rm $esp, 1, _, 16, _ :: (load 4 from %fixed-stack.1, align 16)
+    MOV32mr $esp, 1, _, 8, _, killed $eax :: (store 4 into %ir.n.addr)
+    $eax = LEA32r $esp, 1, _, 20, _
+    MOV32mr $esp, 1, _, 0, _, killed $eax :: (store 4 into %ir.ap1)
+    $eax = LEA32r $esp, 1, _, 24, _
+    MOV32mr $esp, 1, _, 0, _, killed $eax :: (store 4 into %ir.ap)
+    $eax = MOV32rm $esp, 1, _, 20, $ss :: (load 4 from %ir.2)
+    MOV32mr $esp, 1, _, 4, _, killed $eax :: (store 4 into %ir.x)
+    $esp = ADD32ri8 $esp, 12, implicit-def dead $eflags
     RETL
 
 ...
@@ -278,7 +278,7 @@ body:             |
 # CHECK-LABEL: name: h
 # Check that this pass adds the SS prefix when loading stack data using a base
 # register other than ESP or EBP.
-# CHECK: %eax = MOV32rm killed %edx, 4, killed %eax, 0, %ss
+# CHECK: $eax = MOV32rm killed $edx, 4, killed $eax, 0, $ss
 name:            h
 alignment:       4
 exposesReturnsTwice: false
@@ -307,15 +307,15 @@ stack:
   - { id: 0, name: x, offset: -68, size: 64, alignment: 4 }
 body:             |
   bb.0.entry:
-    %esp = frame-setup SUB32ri8 %esp, 64, implicit-def dead %eflags
-    %eax = MOV32rm %esp, 1, _, 72, _ :: (load 4 from %fixed-stack.0)
-    %ecx = MOV32rm %esp, 1, _, 68, _ :: (load 4 from %fixed-stack.1, align 16)
-    %edx = LEA32r %esp, 4, %ecx, 0, _
-    %ecx = MOV32rm %esp, 4, killed %ecx, 0, _ :: (load 4 from %ir.add.ptr)
-    MOV32mr %esp, 1, _, 0, _, killed %ecx :: (store 4 into %ir.arraydecay1)
-    %eax = MOV32rm killed %edx, 4, killed %eax, 0, _ :: (load 4 from %ir.add.ptr1)
-    %esp = ADD32ri8 %esp, 64, implicit-def dead %eflags
-    RETL %eax
+    $esp = frame-setup SUB32ri8 $esp, 64, implicit-def dead $eflags
+    $eax = MOV32rm $esp, 1, _, 72, _ :: (load 4 from %fixed-stack.0)
+    $ecx = MOV32rm $esp, 1, _, 68, _ :: (load 4 from %fixed-stack.1, align 16)
+    $edx = LEA32r $esp, 4, $ecx, 0, _
+    $ecx = MOV32rm $esp, 4, killed $ecx, 0, _ :: (load 4 from %ir.add.ptr)
+    MOV32mr $esp, 1, _, 0, _, killed $ecx :: (store 4 into %ir.arraydecay1)
+    $eax = MOV32rm killed $edx, 4, killed $eax, 0, _ :: (load 4 from %ir.add.ptr1)
+    $esp = ADD32ri8 $esp, 64, implicit-def dead $eflags
+    RETL $eax
 
 ...
 ---
@@ -324,7 +324,7 @@ body:             |
 # register other than ESP or EBP.  The stack pointer value is first spilled and
 # filled, so this also tests the ability of this pass to track spills and fills
 # with the separate frame pointer eliminated.
-# CHECK: MOV32mr killed %eax, 1, _, 4, %ss, killed %ecx
+# CHECK: MOV32mr killed $eax, 1, $noreg, 4, $ss, killed $ecx :: (store 4 into %ir.4)
 name:            l
 alignment:       4
 exposesReturnsTwice: false
@@ -359,39 +359,39 @@ body:             |
   bb.0.entry:
     successors: %bb.1.for.cond
   
-    %esp = frame-setup SUB32ri8 %esp, 80, implicit-def dead %eflags
-    %eax = MOV32rm %esp, 1, _, 88, _ :: (load 4 from %fixed-stack.0)
-    %ecx = MOV32rm %esp, 1, _, 84, _ :: (load 4 from %fixed-stack.1, align 16)
-    MOV32mr %esp, 1, _, 12, _, killed %ecx :: (store 4 into %ir.n.addr)
-    MOV32mr %esp, 1, _, 8, _, killed %eax :: (store 4 into %ir.p.addr)
-    %eax = LEA32r %esp, 1, _, 16, _
-    MOV32mr %esp, 1, _, 0, _, killed %eax :: (store 4 into %ir.q)
-    MOV32mi %esp, 1, _, 4, _, 0 :: (store 4 into %ir.i)
+    $esp = frame-setup SUB32ri8 $esp, 80, implicit-def dead $eflags
+    $eax = MOV32rm $esp, 1, _, 88, _ :: (load 4 from %fixed-stack.0)
+    $ecx = MOV32rm $esp, 1, _, 84, _ :: (load 4 from %fixed-stack.1, align 16)
+    MOV32mr $esp, 1, _, 12, _, killed $ecx :: (store 4 into %ir.n.addr)
+    MOV32mr $esp, 1, _, 8, _, killed $eax :: (store 4 into %ir.p.addr)
+    $eax = LEA32r $esp, 1, _, 16, _
+    MOV32mr $esp, 1, _, 0, _, killed $eax :: (store 4 into %ir.q)
+    MOV32mi $esp, 1, _, 4, _, 0 :: (store 4 into %ir.i)
     JMP_1 %bb.1.for.cond
   
   bb.2.for.inc (align 4):
     successors: %bb.1.for.cond
   
-    %eax = MOV32rm %esp, 1, _, 0, _ :: (dereferenceable load 4 from %ir.q)
-    %ecx = LEA32r %eax, 1, _, 4, _
-    MOV32mr %esp, 1, _, 0, _, killed %ecx :: (store 4 into %ir.q)
-    %ecx = MOV32rm %esp, 1, _, 8, _ :: (dereferenceable load 4 from %ir.p.addr)
-    %ecx = MOV32rm killed %ecx, 1, _, 0, _ :: (load 4 from %ir.2)
-    MOV32mr killed %eax, 1, _, 4, _, killed %ecx :: (store 4 into %ir.4)
-    ADD32mi8 %esp, 1, _, 0, _, 4, implicit-def dead %eflags :: (store 4 into %ir.q), (dereferenceable load 4 from %ir.q)
-    INC32m %esp, 1, _, 4, _, implicit-def dead %eflags :: (store 4 into %ir.i), (dereferenceable load 4 from %ir.i)
+    $eax = MOV32rm $esp, 1, _, 0, _ :: (dereferenceable load 4 from %ir.q)
+    $ecx = LEA32r $eax, 1, _, 4, _
+    MOV32mr $esp, 1, _, 0, _, killed $ecx :: (store 4 into %ir.q)
+    $ecx = MOV32rm $esp, 1, _, 8, _ :: (dereferenceable load 4 from %ir.p.addr)
+    $ecx = MOV32rm killed $ecx, 1, _, 0, _ :: (load 4 from %ir.2)
+    MOV32mr killed $eax, 1, _, 4, _, killed $ecx :: (store 4 into %ir.4)
+    ADD32mi8 $esp, 1, _, 0, _, 4, implicit-def dead $eflags :: (store 4 into %ir.q), (dereferenceable load 4 from %ir.q)
+    INC32m $esp, 1, _, 4, _, implicit-def dead $eflags :: (store 4 into %ir.i), (dereferenceable load 4 from %ir.i)
   
   bb.1.for.cond:
     successors: %bb.2.for.inc, %bb.3.for.end
   
-    CMP32mi8 %esp, 1, _, 4, _, 15, implicit-def %eflags :: (dereferenceable load 4 from %ir.i)
-    JLE_1 %bb.2.for.inc, implicit %eflags
+    CMP32mi8 $esp, 1, _, 4, _, 15, implicit-def $eflags :: (dereferenceable load 4 from %ir.i)
+    JCC_1 %bb.2.for.inc, 14, implicit $eflags
   
   bb.3.for.end:
-    %eax = MOV32rm %esp, 1, _, 12, _ :: (dereferenceable load 4 from %ir.n.addr)
-    %eax = MOV32rm %esp, 4, killed %eax, 16, _ :: (load 4 from %ir.arrayidx)
-    %esp = ADD32ri8 %esp, 80, implicit-def dead %eflags
-    RETL %eax
+    $eax = MOV32rm $esp, 1, _, 12, _ :: (dereferenceable load 4 from %ir.n.addr)
+    $eax = MOV32rm $esp, 4, killed $eax, 16, _ :: (load 4 from %ir.arrayidx)
+    $esp = ADD32ri8 $esp, 80, implicit-def dead $eflags
+    RETL $eax
 
 ...
 ---
@@ -400,7 +400,7 @@ body:             |
 # register other than ESP or EBP.  The stack pointer value is first spilled and
 # filled, so this also tests the ability of this pass to track spills and fills
 # with the separate frame pointer.
-# CHECK: MOV32mr killed %eax, 1, _, 4, %ss, killed %ecx
+# CHECK: MOV32mr killed $eax, 1, $noreg, 4, $ss, killed $ecx :: (store 4 into %ir.4)
 name:            l_fp
 alignment:       4
 exposesReturnsTwice: false
@@ -435,47 +435,47 @@ stack:
 body:             |
   bb.0.entry:
     successors: %bb.1.for.cond
-    liveins: %ebp
+    liveins: $ebp
   
-    frame-setup PUSH32r killed %ebp, implicit-def %esp, implicit %esp
-    %ebp = frame-setup MOV32rr %esp
-    %esp = frame-setup SUB32ri8 %esp, 80, implicit-def dead %eflags
-    %eax = MOV32rm %ebp, 1, _, 12, _ :: (load 4 from %fixed-stack.1)
-    %ecx = MOV32rm %ebp, 1, _, 8, _ :: (load 4 from %fixed-stack.2, align 16)
-    MOV32mr %ebp, 1, _, -16, _, killed %ecx :: (store 4 into %ir.n.addr)
-    MOV32mr %ebp, 1, _, -12, _, killed %eax :: (store 4 into %ir.p.addr)
-    %eax = LEA32r %ebp, 1, _, -80, _
-    MOV32mr %ebp, 1, _, -4, _, killed %eax :: (store 4 into %ir.q)
-    MOV32mi %ebp, 1, _, -8, _, 0 :: (store 4 into %ir.i)
+    frame-setup PUSH32r killed $ebp, implicit-def $esp, implicit $esp
+    $ebp = frame-setup MOV32rr $esp
+    $esp = frame-setup SUB32ri8 $esp, 80, implicit-def dead $eflags
+    $eax = MOV32rm $ebp, 1, _, 12, _ :: (load 4 from %fixed-stack.1)
+    $ecx = MOV32rm $ebp, 1, _, 8, _ :: (load 4 from %fixed-stack.2, align 16)
+    MOV32mr $ebp, 1, _, -16, _, killed $ecx :: (store 4 into %ir.n.addr)
+    MOV32mr $ebp, 1, _, -12, _, killed $eax :: (store 4 into %ir.p.addr)
+    $eax = LEA32r $ebp, 1, _, -80, _
+    MOV32mr $ebp, 1, _, -4, _, killed $eax :: (store 4 into %ir.q)
+    MOV32mi $ebp, 1, _, -8, _, 0 :: (store 4 into %ir.i)
     JMP_1 %bb.1.for.cond
   
   bb.2.for.inc (align 4):
     successors: %bb.1.for.cond
-    liveins: %ebp
+    liveins: $ebp
   
-    %eax = MOV32rm %ebp, 1, _, -4, _ :: (dereferenceable load 4 from %ir.q)
-    %ecx = LEA32r %eax, 1, _, 4, _
-    MOV32mr %ebp, 1, _, -4, _, killed %ecx :: (store 4 into %ir.q)
-    %ecx = MOV32rm %ebp, 1, _, -12, _ :: (dereferenceable load 4 from %ir.p.addr)
-    %ecx = MOV32rm killed %ecx, 1, _, 0, _ :: (load 4 from %ir.2)
-    MOV32mr killed %eax, 1, _, 4, _, killed %ecx :: (store 4 into %ir.4)
-    ADD32mi8 %ebp, 1, _, -4, _, 4, implicit-def dead %eflags :: (store 4 into %ir.q), (dereferenceable load 4 from %ir.q)
-    INC32m %ebp, 1, _, -8, _, implicit-def dead %eflags :: (store 4 into %ir.i), (dereferenceable load 4 from %ir.i)
+    $eax = MOV32rm $ebp, 1, _, -4, _ :: (dereferenceable load 4 from %ir.q)
+    $ecx = LEA32r $eax, 1, _, 4, _
+    MOV32mr $ebp, 1, _, -4, _, killed $ecx :: (store 4 into %ir.q)
+    $ecx = MOV32rm $ebp, 1, _, -12, _ :: (dereferenceable load 4 from %ir.p.addr)
+    $ecx = MOV32rm killed $ecx, 1, _, 0, _ :: (load 4 from %ir.2)
+    MOV32mr killed $eax, 1, _, 4, _, killed $ecx :: (store 4 into %ir.4)
+    ADD32mi8 $ebp, 1, _, -4, _, 4, implicit-def dead $eflags :: (store 4 into %ir.q), (dereferenceable load 4 from %ir.q)
+    INC32m $ebp, 1, _, -8, _, implicit-def dead $eflags :: (store 4 into %ir.i), (dereferenceable load 4 from %ir.i)
   
   bb.1.for.cond:
     successors: %bb.2.for.inc, %bb.3.for.end
-    liveins: %ebp
+    liveins: $ebp
   
-    CMP32mi8 %ebp, 1, _, -8, _, 15, implicit-def %eflags :: (dereferenceable load 4 from %ir.i)
-    JLE_1 %bb.2.for.inc, implicit %eflags
+    CMP32mi8 $ebp, 1, _, -8, _, 15, implicit-def $eflags :: (dereferenceable load 4 from %ir.i)
+    JCC_1 %bb.2.for.inc, 14, implicit $eflags
   
   bb.3.for.end:
-    liveins: %ebp
+    liveins: $ebp
   
-    %eax = MOV32rm %ebp, 1, _, -16, _ :: (dereferenceable load 4 from %ir.n.addr)
-    %eax = MOV32rm %ebp, 4, killed %eax, -80, _ :: (load 4 from %ir.arrayidx)
-    %esp = ADD32ri8 %esp, 80, implicit-def dead %eflags
-    %ebp = POP32r implicit-def %esp, implicit %esp
-    RETL %eax
+    $eax = MOV32rm $ebp, 1, _, -16, _ :: (dereferenceable load 4 from %ir.n.addr)
+    $eax = MOV32rm $ebp, 4, killed $eax, -80, _ :: (load 4 from %ir.arrayidx)
+    $esp = ADD32ri8 $esp, 80, implicit-def dead $eflags
+    $ebp = POP32r implicit-def $esp, implicit $esp
+    RETL $eax
 
 ...
