@@ -20,6 +20,7 @@
 #include <sys/resource.h>
 
 #include "interception/interception.h"
+#include "sanitizer_common/sanitizer_common.h"
 
 using namespace safestack;
 
@@ -90,8 +91,9 @@ __thread size_t unsafe_stack_guard = 0;
 
 inline void *unsafe_stack_alloc(size_t size, size_t guard) {
   SFS_CHECK(size + guard >= size);
-  void *addr = Mmap(nullptr, size + guard, PROT_READ | PROT_WRITE,
-                    MAP_PRIVATE | MAP_ANON, -1, 0);
+  void *addr = __sanitizer::MmapOrDie(size + guard, "unsafe_stack_alloc");
+  // void *addr = Mmap(nullptr, size + guard, PROT_READ | PROT_WRITE,
+  //                   MAP_PRIVATE | MAP_ANON, -1, 0);
   SFS_CHECK(MAP_FAILED != addr);
   Mprotect(addr, guard, PROT_NONE);
   return (char *)addr + guard;
