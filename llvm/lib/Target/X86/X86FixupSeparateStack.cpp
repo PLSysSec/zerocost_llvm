@@ -820,24 +820,26 @@ bool X86FixupSeparateStack::processMemAccessInstr(MachineInstr &I,
   if (BaseIsPhysReg)
     InStack = AReqs.useInMemOp(BaseReg) == RegValueType::StackPointer;
 
-  if (InStack &&
-       (TRI->regsOverlap(X86::ESP, BaseReg) ||
-        TRI->regsOverlap(X86::EBP, BaseReg)))
-      // Memory operand with a base register of ESP or EBP implicitly references
-      // SS.
-    return false;
+  // if (InStack &&
+  //      (TRI->regsOverlap(X86::ESP, BaseReg) ||
+  //       TRI->regsOverlap(X86::EBP, BaseReg)))
+  //     // Memory operand with a base register of ESP or EBP implicitly references
+  //     // SS.
+  //   return false;
 
-  if (!InStack &&
-      // Memory operand without a base register implicitly
-      // references DS.
-      (!(BaseIsPhysReg &&
-         // Memory operand with a base register other than ESP and EBP implicitly
-         // references DS.  This assumes that ESP is never used as a non-stack
-         // pointer.
-         TRI->regsOverlap(X86::EBP, BaseReg))))
-    return false;
+  // if (!InStack &&
+  //     // Memory operand without a base register implicitly
+  //     // references DS.
+  //     (!(BaseIsPhysReg &&
+  //        // Memory operand with a base register other than ESP and EBP implicitly
+  //        // references DS.  This assumes that ESP is never used as a non-stack
+  //        // pointer.
+  //        TRI->regsOverlap(X86::EBP, BaseReg))))
+  //   return false;
 
-  SegRegOp.ChangeToRegister(InStack ? X86::SS : X86::DS, false);
+  if (InStack) {
+    SegRegOp.ChangeToRegister(X86::UR, false);
+  }
 
   return true;
 }
@@ -1151,7 +1153,7 @@ bool X86FixupSeparateStack::runOnMachineFunction(MachineFunction &MF) {
       != FlatMemFuncs.end())
     return false;
 
-  assert(!STI->is64Bit() && "Only X86-32 is supported.");
+  // assert(!STI->is64Bit() && "Only X86-32 is supported.");
 
   Reqs.clear();
 

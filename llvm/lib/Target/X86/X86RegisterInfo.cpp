@@ -563,6 +563,7 @@ BitVector X86RegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   Reserved.set(X86::ES);
   Reserved.set(X86::FS);
   Reserved.set(X86::GS);
+  Reserved.set(X86::UR);
 
   // Mark the floating point stack registers as reserved.
   for (unsigned n = 0; n != 8; ++n)

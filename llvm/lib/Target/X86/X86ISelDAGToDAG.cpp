@@ -2500,6 +2500,8 @@ bool X86DAGToDAGISel::selectVectorAddr(MemSDNode *Parent, SDValue BasePtr,
     AM.Segment = CurDAG->getRegister(X86::FS, MVT::i16);
   if (AddrSpace == X86AS::SS)
     AM.Segment = CurDAG->getRegister(X86::SS, MVT::i16);
+  if (AddrSpace == X86AS::UR)
+    AM.Segment = CurDAG->getRegister(X86::UR, MVT::i16);
 
   SDLoc DL(BasePtr);
   MVT VT = BasePtr.getSimpleValueType();
@@ -2542,6 +2544,8 @@ bool X86DAGToDAGISel::selectAddr(SDNode *Parent, SDValue N, SDValue &Base,
       AM.Segment = CurDAG->getRegister(X86::FS, MVT::i16);
     if (AddrSpace == X86AS::SS)
       AM.Segment = CurDAG->getRegister(X86::SS, MVT::i16);
+    if (AddrSpace == X86AS::UR)
+      AM.Segment = CurDAG->getRegister(X86::UR, MVT::i16);
   }
 
   // Save the DL and VT before calling matchAddress, it can invalidate N.

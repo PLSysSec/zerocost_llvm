@@ -332,6 +332,9 @@ def SS : X86Reg<"ss", 2>;
 def ES : X86Reg<"es", 0>;
 def FS : X86Reg<"fs", 4>;
 def GS : X86Reg<"gs", 5>;
+// A "fake" segment we add to emit some mov instructions with a prefix byte
+// The prefix byte is used in HFI for the unrestricted mov instruction
+def UR : X86Reg<"ur", 6>;
 
 // Debug registers
 def DR0  : X86Reg<"dr0",   0>;
@@ -439,7 +442,7 @@ def GR64 : RegisterClass<"X86", [i64], 64,
 // Segment registers for use by MOV instructions (and others) that have a
 //   segment register as one operand.  Always contain a 16-bit segment
 //   descriptor.
-def SEGMENT_REG : RegisterClass<"X86", [i16], 16, (add CS, DS, SS, ES, FS, GS)>;
+def SEGMENT_REG : RegisterClass<"X86", [i16], 16, (add CS, DS, SS, ES, FS, GS, UR)>;
 
 // Debug registers.
 def DEBUG_REG : RegisterClass<"X86", [i32], 32, (sequence "DR%u", 0, 15)>;

@@ -369,7 +369,8 @@ namespace X86 {
     ES_Encoding = 0x26,
     FS_Encoding = 0x64,
     GS_Encoding = 0x65,
-    SS_Encoding = 0x36
+    SS_Encoding = 0x36,
+    UR_Encoding = 0x0e
   };
 
   /// Given a segment register, return the encoding of the segment override
@@ -391,6 +392,8 @@ namespace X86 {
       return GS_Encoding;
     case X86::SS:
       return SS_Encoding;
+    case X86::UR:
+      return UR_Encoding;
     }
   }
 
