@@ -2236,6 +2236,10 @@ defm stack_clash_protection : BoolFOption<"stack-clash-protection",
   "CodeGenOpts.StackClashProtector", DefaultsToFalse,
   ChangedBy<PosFlag, [], "Enable">, ResetBy<NegFlag, [], "Disable">,
   BothFlags<[], " stack clash protection">>;
+defm enable_unsafe_stack_var_empty_ret_init_zero : BoolFOption<"enable-unsafe-stack-var-empty-ret-init-zero",
+  "CodeGenOpts.EnableUnsafeStackVarEmptyRetInitZero", DefaultsToFalse,
+  ChangedBy<PosFlag, [], "Enable">, ResetBy<NegFlag, [], "Disable">,
+  BothFlags<[], " zero non array stack variables">>;
 def fstack_protector_strong : Flag<["-"], "fstack-protector-strong">, Group<f_Group>,
   HelpText<"Enable stack protectors for some functions vulnerable to stack smashing. "
            "Compared to -fstack-protector, this uses a stronger heuristic "

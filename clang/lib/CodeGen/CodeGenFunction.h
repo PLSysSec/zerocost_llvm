@@ -2458,6 +2458,10 @@ public:
                            const Twine &Name = "tmp",
                            llvm::Value *ArraySize = nullptr,
                            Address *Alloca = nullptr);
+  Address CreateTempAllocaZero(llvm::Type *Ty, CharUnits align,
+                           const Twine &Name = "tmp",
+                           llvm::Value *ArraySize = nullptr,
+                           Address *Alloca = nullptr);
   Address CreateTempAllocaWithoutCast(llvm::Type *Ty, CharUnits align,
                                       const Twine &Name = "tmp",
                                       llvm::Value *ArraySize = nullptr);

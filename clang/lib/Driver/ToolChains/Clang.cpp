@@ -3142,6 +3142,15 @@ static void RenderTrivialAutoVarInitOptions(const Driver &D,
   }
 }
 
+static void RenderUnsafeStackVarInitOptions(const Driver &D,
+                                            const ToolChain &TC,
+                                            const ArgList &Args,
+                                            ArgStringList &CmdArgs) {
+  if (Args.hasFlag(options::OPT_fenable_unsafe_stack_var_empty_ret_init_zero,
+                   options::OPT_fno_enable_unsafe_stack_var_empty_ret_init_zero, false))
+    CmdArgs.push_back("-fenable-unsafe-stack-var-empty-ret-init-zero");
+}
+
 static void RenderOpenCLOptions(const ArgList &Args, ArgStringList &CmdArgs) {
   // cl-denorms-are-zero is not forwarded. It is translated into a generic flag
   // for denormal flushing handling based on the target.
@@ -5552,6 +5561,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   RenderSSPOptions(D, TC, Args, CmdArgs, KernelOrKext);
   RenderSCPOptions(TC, Args, CmdArgs);
   RenderTrivialAutoVarInitOptions(D, TC, Args, CmdArgs);
+  RenderUnsafeStackVarInitOptions(D, TC, Args, CmdArgs);
 
   // Translate -mstackrealign
   if (Args.hasFlag(options::OPT_mstackrealign, options::OPT_mno_stackrealign,

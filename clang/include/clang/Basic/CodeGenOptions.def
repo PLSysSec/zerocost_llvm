@@ -163,6 +163,7 @@ CODEGENOPT(EnableSegmentedStacks , 1, 0) ///< Set when -fsplit-stack is enabled.
 CODEGENOPT(NoInlineLineTables, 1, 0) ///< Whether debug info should contain
                                      ///< inline line tables.
 CODEGENOPT(StackClashProtector, 1, 0) ///< Set when -fstack-clash-protection is enabled.
+CODEGENOPT(EnableUnsafeStackVarEmptyRetInitZero, 1, 0) ///< Set when -enable-unsafe-stack-var-init-zero is enabled.
 CODEGENOPT(NoImplicitFloat   , 1, 0) ///< Set when -mno-implicit-float is enabled.
 CODEGENOPT(NullPointerIsValid , 1, 0) ///< Assume Null pointer deference is defined.
 CODEGENOPT(CorrectlyRoundedDivSqrt, 1, 0) ///< -cl-fp32-correctly-rounded-divide-sqrt

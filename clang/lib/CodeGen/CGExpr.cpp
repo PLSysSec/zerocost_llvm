@@ -101,6 +101,23 @@ Address CodeGenFunction::CreateTempAlloca(llvm::Type *Ty, CharUnits Align,
   return Address(V, Align);
 }
 
+Address CodeGenFunction::CreateTempAllocaZero(llvm::Type *Ty, CharUnits Align,
+                                          const Twine &Name,
+                                          llvm::Value *ArraySize,
+                                          Address *AllocaAddr) {
+    Address Var = CreateTempAlloca(Ty, Align, Name, ArraySize, AllocaAddr);
+    if (CGM.getCodeGenOpts().EnableUnsafeStackVarEmptyRetInitZero) {
+      auto t = Ty->getTypeID();
+      // any data in the unsafe stack (See llvm safestack) does not have to be initialized
+      bool is_data_in_unsafe_stack = (t == llvm::Type::ArrayTyID || t == llvm::Type::FixedVectorTyID || t == llvm::Type::ScalableVectorTyID);
+      if (!is_data_in_unsafe_stack) {
+        llvm::Value *Init = llvm::Constant::getNullValue(Ty);
+        InitTempAlloca(Var, Init);
+      }
+    }
+    return Var;
+}
+
 /// CreateTempAlloca - This creates an alloca and inserts it into the entry
 /// block if \p ArraySize is nullptr, otherwise inserts it at the current
 /// insertion point of the builder.
@@ -139,7 +156,7 @@ void CodeGenFunction::InitTempAlloca(Address Var, llvm::Value *Init) {
 
 Address CodeGenFunction::CreateIRTemp(QualType Ty, const Twine &Name) {
   CharUnits Align = getContext().getTypeAlignInChars(Ty);
-  return CreateTempAlloca(ConvertType(Ty), Align, Name);
+  return CreateTempAllocaZero(ConvertType(Ty), Align, Name);
 }
 
 Address CodeGenFunction::CreateMemTemp(QualType Ty, const Twine &Name,
